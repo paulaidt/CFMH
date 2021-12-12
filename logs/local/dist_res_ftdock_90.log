@@ -1,0 +1,21 @@
+Parsing PDB file...
+Reading structure PDB ...
+Calculating SASA for residues ...
+Calculating interaction distances for residues in chain A and B ...
+Writing output file...
+   residA_Name  residA_id residB_name  residB_id  distance           file
+0          LEU        324         ARG        176  5.749185  ftdock_90.pdb
+1          ILE        325         ARG        176  4.158921  ftdock_90.pdb
+2          ILE        325         GLU        177  4.844966  ftdock_90.pdb
+3          GLY        326         GLU        177  4.793918  ftdock_90.pdb
+4          GLY        326         ASP        178  5.048620  ftdock_90.pdb
+5          LYS        346         ILE        173  4.484947  ftdock_90.pdb
+6          ILE        347         ARG        165  5.820535  ftdock_90.pdb
+7          ILE        347         GLN        171  5.411892  ftdock_90.pdb
+8          ILE        347         HIS        172  5.292029  ftdock_90.pdb
+9          ILE        347         ILE        173  4.076226  ftdock_90.pdb
+10         CYS        348         GLN        171  4.572928  ftdock_90.pdb
+11         CYS        348         HIS        172  5.087445  ftdock_90.pdb
+12         CYS        348         ILE        173  5.352547  ftdock_90.pdb
+13         ALA        349         ILE        173  5.308446  ftdock_90.pdb
+DONE!

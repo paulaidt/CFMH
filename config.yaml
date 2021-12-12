@@ -1,0 +1,27 @@
+  ##############################################################################
+  ### Directories to create
+  ##############################################################################
+  output_dir: "results/"
+  local_log:  "logs/local"
+  cluster_log: "logs/cluster"
+  scripts_dir: "scripts/"
+  
+  ##############################################################################
+  ### Sample information
+  ##############################################################################
+  
+  # Input directory and samples ------------------------------------------------
+  input_dir: "input_files"
+  
+  # Reference structure to validate resutls
+  reference: "input_files/reference_structure.pdb"
+
+  # Programs and IDS
+  program: [zdock, ftdock]
+  zdock: {ids: 100 }
+  ftdock: {ids: 100 }
+
+  # Parameters 
+  cutoff_sasa: 10
+  cutoff_dist: 6
+

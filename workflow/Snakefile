@@ -1,0 +1,102 @@
+import os
+import numpy as np
+
+# Global config
+
+#################################################################################
+### Local rules
+#################################################################################
+
+localrules: finish
+
+#################################################################################
+### Finish rule
+#################################################################################
+
+rule finish:
+	input:
+	#	out1 = expand(os.path.join(config["output_dir"], "distances", "{program}_{id}.dist"), program='zdock', id = config['zdock']['ids']),
+	#	out2 = expand(os.path.join(config["output_dir"], "distances", "{program}_{id}.dist"), program='ftdock', id = config['ftdock']['ids']),
+		out = expand(os.path.join(config["output_dir"], "{program}.result"), program=config["program"])
+	#	cluster = os.path.join(config["output_dir"], "distances", "cluster.result")
+		#out1 = expand(os.path.join(config["output_dir"], "pdb", "{program}", "{program}_{id}.pdb"), program='zdock', id = config['zdock']['ids']),
+		#out2 = expand(os.path.join(config["output_dir"], "pdb", "{program}", "{program}_{id}.pdb"), program='ftdock', id = config['ftdock']['ids'])
+
+		#out = expand(os.path.join(config["output_dir"], "pdb", "{program}", "{program}_{id}.pdb"), program=config["program"], id=config["id"])
+
+#################################################################################
+### XTC to PBD
+#################################################################################
+rule xtc_to_pdb:
+	input:
+		xtc = os.path.join(config["input_dir"], "{program}", "{program}_{id}.xtc"),
+		topology = os.path.join(config["input_dir"], "{program}", "reference_topology.pdb"),
+		script = os.path.join(config["scripts_dir"], "transform_file_pdb.py"),
+	output:
+		pdb = os.path.join(config["output_dir"], "{program}", "pdb", "{program}_{id}.pdb")
+	params:
+		cluster_log = os.path.join(config["cluster_log"], "xtc_to_pdb_{program}_{id}.log")
+	log:
+		os.path.join(config["local_log"], "xtc_to_pdb_{program}_{id}.log")
+	shell:
+		"(python3 {input.script} {input.xtc} {input.topology} {output.pdb}) &> {log}"
+
+#################################################################################
+### INTERACTION DISTANCES RESIDUES
+#################################################################################
+
+rule dist_res:
+	input:
+		pdb = os.path.join(config["output_dir"], "{program}", "pdb", "{program}_{id}.pdb"),
+		script = os.path.join(config["scripts_dir"], "distances_res.py")
+	output:
+		dist = os.path.join(config["output_dir"], "distances", "{program}_{id}.dist")
+	params:
+	    sasa = config["cutoff_sasa"],
+		d_cut = config["cutoff_dist"],
+		cluster_log = os.path.join(config["cluster_log"], "dist_res_{program}_{id}.log")
+	log:
+		os.path.join(config["local_log"], "dist_res_{program}_{id}.log")
+	shell:
+		"(python3 {input.script} -i {input.pdb} -o {output.dist} -s {params.sasa} -d {params.d_cut}) &> {log}"
+
+
+
+#################################################################################
+### CONCATENATE DISTANCES
+#################################################################################
+rule dist_concat:
+	input:
+		dist =  lambda wildcards: expand(os.path.join(config["output_dir"], "distances", "{program}_{id}.dist"),
+				program= config["program"], id= np.arange(0,1+config[wildcards.program]["ids"]).astype(str).tolist()
+		)
+	output:
+		all = os.path.join(config["output_dir"], "distances", "{program}_ALL.csv")
+	params:
+		prefix1 = os.path.join(config["output_dir"], "distances", "{program}"),
+		prefix = lambda wildcards: wildcards.program,
+		cluster_log = os.path.join(config["cluster_log"], "dist_concat_{program}.log")
+	log:
+		os.path.join(config["local_log"], "dist_concat_{program}.log")
+	shell:
+		"(cat {params.prefix1}* > {output.all}) &> {log}"
+
+
+#################################################################################
+### VOTINGS
+#################################################################################
+
+rule votings:
+	input:
+		all = os.path.join(config["output_dir"], "distances", "{program}_ALL.csv"),
+		ref = os.path.join(config["reference"]),
+		script = os.path.join(config["scripts_dir"], "votings.py")
+	output:
+		vote = os.path.join(config["output_dir"], "{program}.result")
+	params:
+		xtc = os.path.join(config["input_dir"], "{program}"),
+		cluster_log = os.path.join(config["cluster_log"], "vote_{program}.log")
+	log:
+		os.path.join(config["local_log"], "vote_{program}.log")
+	shell:
+		"(python3 {input.script} -i {input.all} -r {input.ref} -x {params.xtc} -o {output.vote}) &> {log}"
